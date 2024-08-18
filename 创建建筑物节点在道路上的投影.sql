@@ -23,3 +23,4 @@ ORDER BY
 		b.gid, ST_Distance(r.geom, b.geom);
 									
 
+--把建筑物节点插入

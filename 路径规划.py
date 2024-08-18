@@ -109,6 +109,9 @@ def is_nearby(coord1, coord2, threshold=2):
     distance = geodesic(coord1, coord2).meters
     return distance < threshold
 
+#假设的盲人朝向函数
+def get_direction():
+    return 
 
 # 主循环：不断获取GPS位置并播放指令
 while True:

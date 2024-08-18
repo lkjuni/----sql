@@ -155,7 +155,7 @@ WITH nodelist AS(
 
 
 SELECT
-  seq,lon,lat,
+  seq,lon,lat,next_azimuth, 
   CASE
     WHEN next_azimuth IS NULL THEN '到达终点'
     WHEN prev_azimuth IS NULL THEN '出发'

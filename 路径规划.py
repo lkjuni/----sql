@@ -4,6 +4,8 @@ import pyttsx3
 import time
 from geopy.distance import geodesic  # 用于计算两点之间的距离
 
+import correct_direction
+
 # 输入起点终点的node id
 StartPoint = 3
 EndPoint = 109
@@ -61,7 +63,7 @@ WITH nodelist AS(
 
 
 SELECT
-  seq,lon,lat,
+  seq,lon,lat,next_azimuth,
   CASE
     WHEN next_azimuth IS NULL THEN '到达终点'
     WHEN prev_azimuth IS NULL THEN '出发'
@@ -111,16 +113,32 @@ def is_nearby(coord1, coord2, threshold=2):
 
 #假设的盲人朝向函数
 def get_direction():
-    return 
+    return 90
 
 # 主循环：不断获取GPS位置并播放指令
+right_direction = 0
+
 while True:
     current_location = get_gps_location()
-    for seq, lon, lat, instruction in route_data:
+
+    for seq, lon, lat, instruction,next_azmuth in route_data:
         route_point = (lat, lon)
-        ##if is_nearby(current_location, route_point):
-        speak_instruction(instruction)
-        time.sleep(1)  # 播放语音后等待5秒，避免重复播放
-        ##break  # 播放完指令后退出当前循环，避免多次触发同一指令
+        if is_nearby(current_location, route_point):
+          right_direction = next_azmuth   #更新 正确的方位 right_direction
+          speak_instruction(instruction)
+          time.sleep(1)  # 播放语音后等待5秒，避免重复播放
+          break  # 播放完指令后退出当前循环，避免多次触发同一指令
+    
+    #比较盲人朝向和正确朝向，生成矫正朝向的导航语音
+    current_direction=get_direction()
+    angle_difference = current_direction - right_direction
+    if abs(angle_difference) < 10:
+        speak_instruction("正确方向")  ##继续执行，无需语音播报 
+    elif angle_difference > 10:
+        speak_instruction(f"您已右偏{abs(angle_difference)}度") 
+
+    elif angle_difference < -10:
+        speak_instruction(f"您已左偏{abs(angle_difference)}度") 
+
 
     time.sleep(1)  # 每秒检查一次GPS位置

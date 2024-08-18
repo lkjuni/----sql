@@ -77,7 +77,7 @@
 	(SELECT r.gid AS road_id, road_node.id   --定义输出的表格中有两个字段，分别是road、n.id ，其中AS road_id是给r.gid起了别名
 	  FROM road_splited r, road_node   -- 这里的逗号 代表 笛卡尔积运算 
 	  WHERE ST_DWithin(ST_StartPoint(r.geom), road_node.geom, 2)  --数据精度低，道路之间没有严丝合缝，所以该步骤的tolerance要高，否则找不到起点的id
-	  --需要只保留最近的
+	  --需要只保留最近的（未实现）
 	) AS n
 	WHERE road_splited.gid = n.road_id AND (road_splited.source is NULL );
 	
@@ -102,39 +102,45 @@
 		geom GEOMETRY(POINT,3857)
 	    );
 
-	--A*算法
+
+--A*算法
 WITH nodelist AS(
-	SELECT  seq,
-			node,
-			(SELECT geom FROM road_node r WHERE r.id = node)  AS geom 
+    SELECT  seq,
+            node,
+            (SELECT ST_Transform(geom, 4326) FROM road_node r WHERE r.id = node) AS geom,
+            (SELECT ST_X(ST_Transform(geom, 4326)) FROM road_node r WHERE r.id = node)  AS lon,
+            (SELECT ST_Y(ST_Transform(geom, 4326)) FROM road_node r WHERE r.id = node)  AS lat
+           
     FROM pgr_astar(
-			'SELECT gid AS id,
-				source, target, 
-				ST_Length(geom) AS cost,
-				ST_X(ST_StartPoint(geom)) AS x1, 
-				ST_Y(ST_StartPoint(geom)) AS y1, 
-				ST_X(ST_EndPoint(geom)) AS x2, 
-				ST_Y(ST_EndPoint(geom)) AS y2     
-			 FROM road_splited
-			',
-			3,  -- 起点节点 ID
-			109,  -- 终点节点 ID
-			 directed:=false
-			)
-		
-	)
-											
+            'SELECT gid AS id,
+                source, target, 
+                ST_Length(geom) AS cost,
+                ST_X(ST_StartPoint(geom)) AS x1, 
+                ST_Y(ST_StartPoint(geom)) AS y1, 
+                ST_X(ST_EndPoint(geom)) AS x2, 
+                ST_Y(ST_EndPoint(geom)) AS y2     
+             FROM road_splited
+            ',
+            3,  -- 起点节点 ID
+            109,  -- 终点节点 ID
+             directed:=false
+            )
+
+    )
+
 --  	INSERT INTO rout_node_list
 --  		SELECT geom 
 -- 		FROM road_node
 -- 		WHERE road_node.id in (SELECT node FROM nodelist)
-		
-		
+
+
 , angles AS(  
-	SELECT
+    SELECT
     seq,
-	node,
-	geom,
+    node,
+    geom,
+    lat,
+    lon,
     LEAD(geom) OVER (ORDER BY seq) AS next_geom,
     LAG(geom) OVER (ORDER BY seq)  AS prev_geom,
     CASE
@@ -149,13 +155,13 @@ WITH nodelist AS(
 
 
 SELECT
-  seq,geom,
+  seq,lon,lat,
   CASE
-    WHEN next_azimuth IS NULL THEN 'End of route'
-    WHEN prev_azimuth IS NULL THEN 'Start route'
-    WHEN abs(next_azimuth - prev_azimuth) < radians(15) THEN 'Continue straight'
-    WHEN next_azimuth - prev_azimuth < 0 THEN 'Turn right'
-    ELSE 'Turn left'
+    WHEN next_azimuth IS NULL THEN '到达终点'
+    WHEN prev_azimuth IS NULL THEN '出发'
+    WHEN abs(next_azimuth - prev_azimuth) < radians(15) THEN '继续直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
+    WHEN next_azimuth - prev_azimuth < 0 THEN '该路口右转，然后直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
+    ELSE '该路口左转，然后直行' ||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
   END AS instruction
 FROM
   angles;

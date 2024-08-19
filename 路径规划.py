@@ -4,10 +4,11 @@ import pyttsx3
 import time
 from geopy.distance import geodesic  # 用于计算两点之间的距离
 
-import correct_direction
+import get_gps_location
+##import correct_direction
 
 # 输入起点终点的node id
-StartPoint = 3
+StartPoint = 81
 EndPoint = 109
 
 # 数据库查询语句
@@ -100,10 +101,7 @@ def speak_instruction(text):
     engine.say(text)
     engine.runAndWait()
 
-# 假设的GPS定位获取函数，您需要用实际的GPS模块替换
-def get_gps_location():
-    # 返回模拟的当前GPS位置
-    return 39.96002107024472, 116.35547164650394  #
+
 
 # 检查当前位置是否接近路线点
 def is_nearby(coord1, coord2, threshold=2):
@@ -113,10 +111,10 @@ def is_nearby(coord1, coord2, threshold=2):
 
 #假设的盲人朝向函数
 def get_direction():
-    return 90
+    return 39
 
 # 主循环：不断获取GPS位置并播放指令
-right_direction = 0
+right_direction = 45
 
 while True:
     current_location = get_gps_location()
@@ -133,7 +131,7 @@ while True:
     current_direction=get_direction()
     angle_difference = current_direction - right_direction
     if abs(angle_difference) < 10:
-        speak_instruction("正确方向")  ##继续执行，无需语音播报 
+        speak_instruction("朝向正确")  ##继续执行，无需语音播报 
     elif angle_difference > 10:
         speak_instruction(f"您已右偏{abs(angle_difference)}度") 
 

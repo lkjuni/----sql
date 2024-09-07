@@ -4,8 +4,8 @@ CREATE TABLE building_projected (
 	geom GEOMETRY(POINT,3857)
 
 );
-											
-											
+										
+		select ST_AsText(ST_Transform(geom, 4326)) from road_node where id=259							
 INSERT INTO building_projected(building_name,geom)				
 SELECT DISTINCT ON (b.gid)
 		--b.gid AS building_id,

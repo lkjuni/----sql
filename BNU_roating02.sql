@@ -1,12 +1,12 @@
 --STEP1:在数据库中 加入postgis拓展
 	CREATE EXTENSION postgis;
 	SELECT postgis_full_version(); --查看postgis的版本
-
 	CREATE EXTENSION pgrouting;
 
 --STEP2:利用postgis bundle import软件 导入学校道路的shapefile文件
 	--注意 **填写SRID  **打开option勾选 生成single geometry	
 	--利用qgis人工修改一下road_splited,删除那些用不到的边，比如三环路，北邮……
+
 
 --STEP3:创建道路节点表
 	CREATE TABLE road_node (
@@ -14,7 +14,7 @@
 		geom GEOMETRY(POINT,3857) UNIQUE,
 		name varchar
 	) ;
-	
+
 	-- 将道路几何分解为起点和终点并插入到 road_node 表中  *****错误** 同一个点 可能是 多个道路的端点，所以这样会引起同一个点重复插入，且id不同				
 		-- 插入去重后的起始点
 		INSERT INTO road_node (geom)
@@ -29,25 +29,52 @@
 
 	
 	--******还需要用qgis人工补充一些 两条道路的交叉点（相交，但是交点不是任意一条道路的端点）
-	
 	CREATE TABLE supplement_node_ (   --存储该地图需要补的点,在qgis中插入点
 		geom GEOMETRY(POINT,3857)
 	) ;
+
 	INSERT INTO road_node (geom)
-	SELECT * FROM supplement_node_
-	
-	--插入建筑物在道路上的投影节点
-	INSERT INTO road_node (name,geom) 
-	SELECT building_name,geom 
-	FROM building_projected
+	SELECT * FROM supplement_node_ 
 	ON CONFLICT (geom) DO NOTHING;
+
+
+	--插入建筑物节点在道路上的投影点
+		CREATE TABLE building_projected (
+			building_name varchar ,
+			geom GEOMETRY(POINT,3857)
+
+		);
+																		
+		INSERT INTO building_projected(building_name,geom)				
+		SELECT DISTINCT ON (b.gid)
+				--b.gid AS building_id,
+				b.buildingna AS building_name,
+				--ST_AsText(b.geom) AS building_location,
+				--r.gid AS road_id,
+				ST_ClosestPoint(r.geom, b.geom) AS projected_location--,
+				--ST_Distance(r.geom, b.geom) AS distance_to_road
+		FROM
+				building_node b,
+				road_unsplited r
+		WHERE
+				ST_DWithin(r.geom, b.geom, 100)
+		ORDER BY
+				b.gid, ST_Distance(r.geom, b.geom);
+											
+		--插入建筑物在道路上的投影节点
+		INSERT INTO road_node (name,geom) 
+		SELECT building_name,geom 
+		FROM building_projected
+		ON CONFLICT (geom) DO NOTHING;
+
+
 --STEP4：利用道路节点将现有道路进行进一步分割，将分割好的道路存入新的表格road_splited
 	-- 创建 road_splited 表，存储分割后的道路
 	CREATE TABLE road_splited (
 		road_name varchar,
 		gid SERIAL PRIMARY KEY,
 		geom GEOMETRY(LineString, 3857) -- 使用 EPSG:3857 坐标系
-	);
+	);  
 	--将道路按节点进行分割，并插入到 road_splited 表中
 	WITH nodes AS (
 		SELECT ST_Collect(geom) AS geom  --将所有道路整合为个1个整体图形，用于道路分割
@@ -55,7 +82,7 @@
 	),
 	buffered_nodes AS (
 		SELECT ST_Collect(ST_Buffer(geom, 1)) AS geom -- ****调整 1 为合适的容差值（单位为坐标系的单位）
-		FROM road_unsplited
+		FROM road_node
 	),
 	split_roads AS (
 		SELECT r.name as road_name,ST_Split(r.geom, n.geom) AS geom_collection
@@ -66,7 +93,7 @@
 	SELECT s.road_name ,(ST_Dump(geom_collection)).geom  AS geom
 	FROM split_roads s;						
 --STEP5:补充target、source列为了对road_splited使用A*算法，所以road_splited需要补充 起点id和终点id	
-	
+
 	--插入source、target列
 	ALTER TABLE road_splited ADD COLUMN source int;
 	ALTER TABLE road_splited ADD COLUMN target int;
@@ -155,7 +182,7 @@ WITH nodelist AS(
 
 
 SELECT
-  seq,lon,lat,next_azimuth, 
+  seq,lat,lon,next_azimuth, 
   CASE
     WHEN next_azimuth IS NULL THEN '到达终点'
     WHEN prev_azimuth IS NULL THEN '出发'

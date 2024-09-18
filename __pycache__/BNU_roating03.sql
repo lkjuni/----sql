@@ -130,7 +130,9 @@ WITH nodelist AS(
       WHEN LEAD(geom) OVER (ORDER BY seq)  IS NULL THEN NULL
       ELSE ST_Azimuth(geom, LEAD(geom) OVER (ORDER BY seq))
     END AS next_azimuth
-  FROM nodelist)
+  FROM nodelist
+  WHERE 
+  )
 
 
 SELECT

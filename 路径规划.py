@@ -60,13 +60,13 @@ WITH nodelist AS(
     END AS next_azimuth
   
   FROM nodelist
-  WHERE class != '3')
+  WHERE class != '3' or seq = 1)
 
 
 SELECT
   seq,lat,lon,next_azimuth, 
   CASE
-    when class = '3' THEN null
+    when class = '3' and seq!=1 THEN null
     WHEN next_azimuth IS NULL THEN '到达终点'
     WHEN prev_azimuth IS NULL THEN '出发'
     WHEN abs(next_azimuth - prev_azimuth) < radians(15) THEN '继续直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'

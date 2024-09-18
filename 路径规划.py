@@ -47,6 +47,7 @@ WITH nodelist AS(
     geom,
     lat,
     lon,
+    class,
     LEAD(geom) OVER (ORDER BY seq) AS next_geom,
     LAG(geom) OVER (ORDER BY seq)  AS prev_geom,
     CASE
@@ -56,9 +57,10 @@ WITH nodelist AS(
     CASE
       WHEN LEAD(geom) OVER (ORDER BY seq)  IS NULL THEN NULL
       ELSE ST_Azimuth(geom, LEAD(geom) OVER (ORDER BY seq))
-    END AS next_azimuth,
-    class
-  FROM nodelist)
+    END AS next_azimuth
+  
+  FROM nodelist
+  WHERE class != '3')
 
 
 SELECT
@@ -68,8 +70,8 @@ SELECT
     WHEN next_azimuth IS NULL THEN '到达终点'
     WHEN prev_azimuth IS NULL THEN '出发'
     WHEN abs(next_azimuth - prev_azimuth) < radians(15) THEN '继续直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
-    WHEN next_azimuth - prev_azimuth < 0 THEN '该路口左转，然后直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
-    ELSE '该路口右转，然后直行' ||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
+    WHEN next_azimuth - prev_azimuth < 0 THEN '到达路口，左转，然后直行'||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
+    ELSE '到达路口，右转，然后直行' ||ROUND(ST_Distance( ST_Transform(geom, 32633), ST_Transform(next_geom, 32633)))||'米'
   END AS instruction
 FROM
   angles;  --坐标系是wgs84

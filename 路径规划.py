@@ -4,11 +4,9 @@ import pyttsx3
 import time
 from geopy.distance import geodesic  # 用于计算两点之间的距离
 import math
-
 import get_gps_location  as loc #定位函数
-
-import correct_direction  #
 import get_direction as dir#获取盲人朝向
+
 # 输入起点终点的node id
 StartPoint = 3301
 EndPoint = 102
@@ -111,6 +109,9 @@ def is_nearby(coord1, coord2, threshold=2):
     return distance < threshold
 
 print(route_data)
+
+
+
 right_direction = 45  #初始化正确朝向
 # 主循环：不断获取GPS位置并播放指令
 while True:

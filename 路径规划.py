@@ -81,11 +81,11 @@ FROM
 # 连接数据库并执行查询
 try:
     connection = psycopg2.connect(
-        dbname="BNU_roating03",
+        dbname="bnuroating03",
         user="postgres",
         password="1612389578lkjlyy",
-        host="localhost",
-        port="5433"
+        host="39.107.254.252",
+        port="5432"
     )
 
     cursor = connection.cursor()
@@ -130,11 +130,14 @@ while True:
     angle_difference = round(current_direction - math.degrees(right_direction)) 
     if abs(angle_difference) < 10:
         speak_instruction("朝向正确")  ##继续执行，无需语音播报 
-    elif angle_difference > 10:
-        speak_instruction(f"请左偏{abs(angle_difference)}度") 
-
-    elif angle_difference < -10:
+    elif 180 > angle_difference > 10:
         speak_instruction(f"请右偏{abs(angle_difference)}度") 
+    elif 360 >= angle_difference >= 180:
+        speak_instruction(f"请左偏{(360-angle_difference)}度") 
+    elif -180 <= angle_difference < -10:
+        speak_instruction(f"请左偏{(-1*angle_difference)}度") 
+
+    else: speak_instruction(f"请右偏{360+angle_difference}度")
 
 
     time.sleep(1.5)  # 每秒检查一次GPS位置

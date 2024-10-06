@@ -1,11 +1,13 @@
-import psycopg2
-from psycopg2 import OperationalError
-import pyttsx3
-import time
-from geopy.distance import geodesic  # 用于计算两点之间的距离
+import psycopg2                       #数据库交互模块
+from psycopg2 import OperationalError 
+from geopy.distance import geodesic   # 计算两点之间的距离
 import math
-import get_gps_location  as loc #定位函数
-import get_direction as dir#获取盲人朝向
+import get_gps_location  as loc       #获取盲人实时位置
+import get_direction as dir           #获取盲人实时的朝向     
+import pyttsx3                        #语音输出模块
+import time                           #计时暂停模块
+
+
 
 # 输入起点终点的node id
 StartPoint = 3301
@@ -110,8 +112,6 @@ def is_nearby(coord1, coord2, threshold=2):
 
 print(route_data)
 
-
-
 right_direction = 45  #初始化正确朝向
 # 主循环：不断获取GPS位置并播放指令
 while True:
@@ -137,9 +137,7 @@ while True:
         speak_instruction(f"请左偏{(360-angle_difference)}度") 
     elif -180 <= angle_difference < -10:
         speak_instruction(f"请左偏{(-1*angle_difference)}度") 
-
     else: speak_instruction(f"请右偏{360+angle_difference}度")
-
 
     time.sleep(1.5)  # 每秒检查一次GPS位置
 

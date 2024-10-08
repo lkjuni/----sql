@@ -8,11 +8,11 @@ import math
 
 
 
-source_node = 3301                     # 输入起点终点的node id
-target_node = 102
-right_direction = 45                  #初始化正确朝向
-direction_tolerance = 10              
-route_data = get_route(source_node,target_node)
+SOURCE_NODE = 3301                     # 输入起点、终点的node id
+TARGET_NODE = 102
+RIGHT_DIRECTION = 45                  #初始化正确朝向
+DIRECTION_TOLERANCE = 10                        
+route_data = get_route(SOURCE_NODE,TARGET_NODE)
 print(route_data)
 
 
@@ -26,20 +26,20 @@ while True:
     for seq, lat, lon, next_azmuth,instruction in route_data:
         route_point = (lat, lon)
         if is_nearby(current_location, route_point):
-          right_direction = next_azmuth   #更新 正确的方位 right_direction
-          speak_instruction(instruction)
-          time.sleep(1)  # 播放语音后等待1秒，避免重复播放
-          break  # 避免多次触发同一指令
+            right_direction = next_azmuth   #更新 正确的方位 right_direction
+            speak_instruction(instruction)
+            time.sleep(1)  # 播放语音后等待1秒，避免重复播放
+            break  # 避免多次触发同一指令
     
     #比较盲人朝向和正确朝向，生成矫正朝向的导航语音
     angle_difference = round(current_direction - math.degrees(right_direction)) 
-    if abs(angle_difference) < direction_tolerance:
+    if abs(angle_difference) < DIRECTION_TOLERANCE:
         speak_instruction("朝向正确")  ##继续执行，无需语音播报 
-    elif 180 > angle_difference > direction_tolerance:
+    elif 180 > angle_difference > DIRECTION_TOLERANCE:
         speak_instruction(f"请右偏{abs(angle_difference)}度") 
     elif 360 >= angle_difference >= 180:
         speak_instruction(f"请左偏{(360-angle_difference)}度") 
-    elif -180 <= angle_difference < -1*direction_tolerance:
+    elif -180 <= angle_difference < -1*DIRECTION_TOLERANCE:
         speak_instruction(f"请左偏{(-1*angle_difference)}度") 
     else: speak_instruction(f"请右偏{360+angle_difference}度")
 

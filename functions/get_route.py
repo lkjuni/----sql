@@ -2,6 +2,7 @@ import psycopg2                                   #数据库交互模块
 from psycopg2 import OperationalError 
 
 def get_route(source_node,target_node):
+  
   query = f'''     
   --A*算法
   WITH nodelist AS(

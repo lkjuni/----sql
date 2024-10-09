@@ -1,3 +1,4 @@
+from functions.get_SOURCE_NODE import get_source_node               #获取起点ID     
 from functions.get_route import get_route                           #获取导航路径
 from functions.get_gps_location  import get_gps_location            #获取盲人实时位置
 from functions.get_direction import get_direction                   #获取盲人实时的朝向
@@ -8,7 +9,7 @@ import math
 
 
 
-SOURCE_NODE = 3301                     # 输入起点、终点的node id 
+SOURCE_NODE = get_source_node()        # 输入起点、终点的node id 
 TARGET_NODE = 102
 RIGHT_DIRECTION = 45                   #初始化正确朝向 （导航的不同阶段对应不同的正确朝向）
 DIRECTION_TOLERANCE = 10               #盲人朝向与正确朝向的最大误差，一旦超过最大误差就立刻提示盲人   

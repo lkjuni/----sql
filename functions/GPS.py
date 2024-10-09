@@ -1,5 +1,3 @@
-# 假设的GPS定位获取函数，您需要用实际的GPS模块替换
-
 # coding: utf-8
 # last modified:20220824
 import time
@@ -109,13 +107,20 @@ def GPS_read():
                                                         kph = VTG_g[9]+'.'+VTG_g[10]
                                                 #print(kph)
 
-
-def get_gps_location():
-    # 返回模拟的当前GPS位置 
-    try:
+try:
+    while True:
         if GPS_read():
-            return (lat+ulat,lon+ulon)
-
-    except KeyboardInterrupt:
-        ser.close()
-        print("GPS serial Close!")  #
+            print("*********************")
+            print('UTC Time:'+utctime)
+            print('Latitude:'+lat+ulat)
+            print('Longitude:'+lon+ulon)
+            print('Number of satellites:'+numSv)
+            print('Altitude:'+msl)
+            print('True north heading:'+cogt+'°')
+            print('Magnetic north heading:'+cogm+'°')
+            print('Ground speed:'+sog+'Kn')
+            print('Ground speed:'+kph+'Km/h')
+            print("*********************")
+except KeyboardInterrupt:
+    ser.close()
+    print("GPS serial Close!")

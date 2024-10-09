@@ -69,7 +69,7 @@ def get_route(source_node,target_node):
       connection = psycopg2.connect(
           dbname="bnuroating03",
           user="postgres",
-          password="1612389578lkjlyy",
+          password="yahboom",
           host="39.107.254.252",
           port="5432"
       )

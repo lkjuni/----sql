@@ -8,11 +8,12 @@ import math
 
 
 
-SOURCE_NODE = 3301                     # 输入起点、终点的node id
+SOURCE_NODE = 3301                     # 输入起点、终点的node id 
 TARGET_NODE = 102
-RIGHT_DIRECTION = 45                  #初始化正确朝向
-DIRECTION_TOLERANCE = 10                        
-route_data = get_route(SOURCE_NODE,TARGET_NODE)
+RIGHT_DIRECTION = 45                   #初始化正确朝向 （导航的不同阶段对应不同的正确朝向）
+DIRECTION_TOLERANCE = 10               #盲人朝向与正确朝向的最大误差，一旦超过最大误差就立刻提示盲人   
+
+route_data = get_route(SOURCE_NODE,TARGET_NODE)  ##获取导航信息 
 print(route_data)
 
 
@@ -20,7 +21,7 @@ print(route_data)
 # 主循环：不断获取GPS位置并播放指令
 while True:
     current_location = get_gps_location()  #获取当前盲人位置
-    current_direction= get_direction() #获取盲人当前朝向
+    current_direction= get_direction()     #获取盲人当前朝向
 
     #检测盲人是否到达导航节点，若到达，播报导航信息+更新right_direction
     for seq, lat, lon, next_azmuth,instruction in route_data:

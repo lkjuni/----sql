@@ -5,6 +5,7 @@ from functions.get_direction import get_direction                   #获取盲�
 from functions.is_nearby import is_nearby                           #判断盲人是否靠近“关键点”
 from functions.speak_instruction import speak_instruction           #语音输出模块
 import time                                                         #计时暂停模块
+from geopy.distance import geodesic                                   #计算两点之间的距离
 import math
 
 
@@ -13,7 +14,7 @@ SOURCE_NODE = get_source_node()        # 输入起点、终点的node id
 TARGET_NODE = 102
 RIGHT_DIRECTION = 45                   #初始化正确朝向 （导航的不同阶段对应不同的正确朝向）
 DIRECTION_TOLERANCE = 10               #盲人朝向与正确朝向的最大误差，一旦超过最大误差就立刻提示盲人   
-
+next_node_location = (0,0)                      #导航过程中，下一节点的坐标
 route_data = get_route(SOURCE_NODE,TARGET_NODE)  ##获取导航信息 
 print(route_data)
 
@@ -29,21 +30,25 @@ while True:
         route_point = (lat, lon)
         if is_nearby(current_location, route_point):
             right_direction = next_azmuth   #更新 正确的方位 right_direction
+            next_node_location = route_point 
             speak_instruction(instruction)
             time.sleep(1)  # 播放语音后等待1秒，避免重复播放
             break  # 避免多次触发同一指令
     
     #比较盲人朝向和正确朝向，生成矫正朝向的导航语音
     angle_difference = round(current_direction - math.degrees(right_direction)) 
-    if abs(angle_difference) < DIRECTION_TOLERANCE:
-        speak_instruction("朝向正确")  ##继续执行，无需语音播报 
-    elif 180 > angle_difference > DIRECTION_TOLERANCE:
+    if 180 > angle_difference > DIRECTION_TOLERANCE:
         speak_instruction(f"请右偏{abs(angle_difference)}度") 
     elif 360 >= angle_difference >= 180:
         speak_instruction(f"请左偏{(360-angle_difference)}度") 
     elif -180 <= angle_difference < -1*DIRECTION_TOLERANCE:
         speak_instruction(f"请左偏{(-1*angle_difference)}度") 
     else: speak_instruction(f"请右偏{360+angle_difference}度")
+
+    #若盲人输入“下一节点”指令，则播报当前距离下一节点的距离。  这样就不需要把随机点导入导航信息了！！
+    if ():      #检测是否收到“下一节点”的语音                                           
+        speak_instruction(f"距离下一节点{geodesic(next_node_location,current_location).meters}米")
+
 
     time.sleep(1.5)  # 每秒检查一次GPS位置
 

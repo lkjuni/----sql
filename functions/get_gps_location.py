@@ -119,3 +119,4 @@ def get_gps_location():
     except KeyboardInterrupt:
         ser.close()
         print("GPS serial Close!")  #
+

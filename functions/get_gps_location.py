@@ -110,11 +110,30 @@ def GPS_read():
                                                 #print(kph)
 
 
+def extract_doubles_from_string_tuple(string_tuple):  
+    # 初始化一个空列表来存储转换后的浮点数  
+    doubles = []  
+      
+    # 遍历元组中的每个字符串元素  
+    for s in string_tuple:  
+        # 移除方向字符，并转换为浮点数  
+        # 这里假设方向字符总是位于字符串的末尾  
+        number_str = s[:-1]  # 去除最后一个字符（方向字符）  
+        double_value = float(number_str)  # 转换为浮点数  
+          
+        # 将转换后的浮点数添加到列表中  
+        doubles.append(double_value)  
+      
+    # 将列表转换为元组并返回  
+    return tuple(doubles)  
+  
+
+
 def get_gps_location():
     # 返回模拟的当前GPS位置 
     try:
         if GPS_read():
-            return (lat+ulat,lon+ulon)
+            return extract_doubles_from_string_tuple((lat+ulat,lon+ulon))
 
     except KeyboardInterrupt:
         ser.close()

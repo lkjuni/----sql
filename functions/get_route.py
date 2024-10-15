@@ -22,7 +22,7 @@ def get_route(source_node,target_node):
                   ST_Y(ST_EndPoint(geom)) AS y2     
               FROM aaa
               ',
-              3301/*{source_node}*/,  -- 起点节点 ID
+              63/*{source_node}*/,  -- 起点节点 ID
               102/*{target_node}*/,  -- 终点节点 ID
               directed:=false
               )

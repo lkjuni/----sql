@@ -5,6 +5,7 @@ from functions.get_gps_location import get_gps_location #获取初始定位
 
 def get_source_node():
     original_location=get_gps_location()
+    
     query = f'''SELECT id   
     FROM all_nodes   
     ORDER BY ST_Distance \
